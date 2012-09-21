@@ -118,6 +118,7 @@ look a lot like a Google style popup.
 			  '<div class="%(textClasses)s">%(text)s</div>' +
 			  '<div class="%(toolsClasses)s">' +
 			    '<input type="button" class="close-reveal-modal" name="cancel" value="X">' +
+   			    '<span class="user-defined-buttons">%(buttons)s</span>' +
 			  '</div>' +
 			'</div>',
 		/*
@@ -193,36 +194,52 @@ look a lot like a Google style popup.
 			}
 		},
 
+		//returns a PopupButton
 		addButton: function(){
 			var button = arg(arguments, 0, null)
+			var _button = button;
+
 			if(button){
 				var to = typeof(button)
 				if(to == 'string') {
 					// create buttons
 					_button = popButton(button, function(){
 						console.log(button + ' has no function mapping.');
-						debugger;
+						
 						this.close();
 					});
+
 					this._buttons.push(_button)
+
 				}else if(to == 'object') {
 
 					if(button == PopupButton) {
 						// add it
 						this._buttons.push(button);
+						_button = button
 					} else {
 						// Just some sort of object. Map it anyway
 						var text = button.text || button.value || button.name || button.id || null
 						var func = button.func || button.click || button.press || button.onClick || button.onTouch || button.action || null
 						var color = button.color || button.background || button.type || button.action || null
 						var action = button.action || button.value || button.name || button.type || null
-						var id = null;
+						var id = buttons.id || 'greveal_' + button.name || 'greveal_' + button.value || 'noid';
 						_button = popButton(text, func, color, id, action)
 						this._buttons.push(_button)
+						return _button
 					}
 
 				}
 			}
+
+
+			if( $(this[0]).data('visible') ) {
+				// display button
+				var el = $(this[0]).find('.' + opts.toolsClasses)
+				el.append(_button.render());
+			};
+
+			return _button;
 		},
 
 		// Use the provided buttons and render the tools section.
@@ -232,9 +249,30 @@ look a lot like a Google style popup.
 			console.log('render buttons')
 		},
 
+
+		activateHandlers: function(){
+			for (var i = 0; i < this._buttons.length; i++) {
+				var button = this._buttons[i];
+				button.active()
+			};
+		},
+
 		// apply and or return the HTML used as a template.
 		html: function(){
-			return arg(arguments, 0, opts.html)
+			
+			opts.buttons = '';
+			for (var i = 0; i < this._buttons.length; i++) {
+				var button = this._buttons[i];
+				var render = button.render()
+				opts.buttons += render;
+				// give an id to use so this element can be 
+				// used later.
+				// 
+				console.log(button, render)
+			};
+
+			var _html = arg(arguments, 0, opts.html)
+			return _html;
 		},
 
 		id: function(){
@@ -289,7 +327,9 @@ look a lot like a Google style popup.
 		
 		var title = 'default title';
 		var text = 'default text';
-		var _buttons = arg(arguments, 2, defaults.buttons);
+		var _buts = arg(arguments, 2, defaults.buttons);
+
+
 		var html = arg(arguments, 3, defaults.html);
 
 		var perform = true;
@@ -373,7 +413,7 @@ look a lot like a Google style popup.
 
 				opts.title = title;
 				opts.text = text;
-				var html = rev.renderedHtml();
+				
 
 				if($('#' + opts.id).length > 0) {
 					// remove old html
@@ -382,20 +422,25 @@ look a lot like a Google style popup.
 				}
 
 				// Append this popup to the html
-				$('body').append(html)
-				if(_buttons.length <= 0) {
+				
+				
+				if(_buts.length <= 0) {
 					$('#' + opts.id + ' .' + opts.toolsClasses).hide()
 				} else {
-					rev.buttons(_buttons)
-
-
+					for (var i = 0; i < _buts.length; i++) {
+						var button = _buts[i]
+						rev.addButton(button)
+					};
 				}
-
+				
+				var html = rev.renderedHtml();
+				$('body').append(html)
 				//$('#' + defaults.id).hide()
 				rev[0] = $('#' + opts.id)
 				rev[0].reveal()
+				rev[0].data('visible', true)
 				rev[0].data(opts.dataName, rev);
-
+				rev.activateHandlers()
 				$('#' + opts.id + ' .' + opts.textClasses + ' ' + opts.titleObject).hide();
 
 				revs.push(rev)
@@ -447,9 +492,10 @@ PopupButton = function(){
 	this.init = function(){
 	    var a = arguments
 		this._text = arg(a, 0, 'Press');
+	    this._id = 'button_' + this._text;
 	    this._func = arg(a, 1, FUNCTION); //Do nothing
-
-	    this._color = arg(a, 2, null) // Sorta grey
+		this._color = arg(a, 2, null) // Sorta grey
+		this.parent = arg(a, 3, null)
 
 		if(this._color == null) {
 			// Some color sensative words?
@@ -500,11 +546,18 @@ PopupButton = function(){
 	this.active = function(func){
 		/* When the popup is called at requested for the view */
 		this.registerHandler('active', func)
+
+		if(this[0]){
+			// handler can active
+			console.log("Activate!!!")
+		}else {
+			console.error("PopupButton(" + this.text() + ").active() cannot be called until the html has been rendered by the parent")
+		}
 	}
 
 	this.registerHandler = function() {
 	    var a = arguments
-		var name = arg(a, 0, '*');
+		var name = arg(a, 0, 'click');
 		var func = arg(a, 1, null)
 
 		if(func){
@@ -643,9 +696,9 @@ PopupButton = function(){
 		return self._position = arg(a, 0, self._position)
 	}
 
-	this.htmlTemplate = function(parent){
-		console.log("htmlTemplate")
-		var buttonTemplate = "<input type='button' name='%(name)s' class='mini-button %(color)s' style='background-color: %(color)s;' value='%(text)s'>"
+	this.htmlTemplate = function(){
+		var parent = arg(arguments, 0, null)
+		var buttonTemplate = "<input type='button' id='%(id)s' name='%(name)s' class='mini-button %(color)s' style='background-color: %(color)s;' value='%(text)s'>"
         return buttonTemplate;
 	}
 
@@ -663,20 +716,24 @@ PopupButton = function(){
            }
 	}
 
-	this.render = function(parent){
+	this.render = function(){
 		// return the html of the button templated with associated
 		// data.
-       var html = sprintf(this.htmlTemplate(parent), this.renderObject())
-       return html
-
-       sel
+		var parent = arg(arguments, 0, null)
+		var html = arg(arguments, 1, 
+						sprintf(this.htmlTemplate(parent), this.renderObject()) 
+					)
+       	return html;
 	}
 
 	this.renderTo = function(){
+		var parent = arg(arguments, 0, this.parent)
+
 		// Append this button into the passed container
 		var a = arguments;
 		var parent = arg(a, 0, '')
-		if(parent != '') {
+		
+		if(parent != '' && parent != null && parent != undefined) {
 			var render = self.render(parent)
 			$(parent).append(render)
 		}
