@@ -39,7 +39,7 @@ function arg(_a, ia, def, returnArray) {
 
 
 /*
-gReveal is a google style popup designed to 
+gReveal is a google style popup designed to
 look a lot like a Google style popup.
  */
 
@@ -58,11 +58,11 @@ look a lot like a Google style popup.
 		The default title for the popup. This can be overridden
 
 		 */
-		title: 'Title',
+		title: 'ooh HAI!',
 		/*
 		Default data for the popup
 		 */
-		text: 'Textual information',
+		text: 'This popup is on Gravel',
 		/*
 		ID of the popup. This will be applied only when required. It's best
 		not to rely on this for asset use.
@@ -81,7 +81,7 @@ look a lot like a Google style popup.
 		/*
 		Class applied to the title when created.
 		 */
-		
+
 		titleClasses: 'title',
 		/*
 		Classes applied to the main text data when the popup is created.
@@ -91,25 +91,25 @@ look a lot like a Google style popup.
 		/*
 		Classes used for the tools bar at the bottom of the popup.
 		 */
-		
+
 		toolsClasses: 'buttons',
 
 		/* The selector for jQuery wrapped objects; gReveal will
 		pull this entity to use as a title (and remove the original)
 		 */
 		titleObject: 'h2.title',
-		
+
 		/*
 		Selector for the text object.
 		 */
 		textObject: 'div.information',
 
 		/*
-		The method of removal for the title method within 
+		The method of removal for the title method within
 		jQuery wrapped elements. (Standard jQuery classes)
 		 */
 		titleRemovalMethod: 'hide', // remove
-		
+
 		/*
 		The HTML to use as a popup template if no jQuery wrapped objects exist.
 		 */
@@ -186,14 +186,14 @@ look a lot like a Google style popup.
 				};
 
 				return null;
-			} 
+			}
 
 			return this._buttons
 			// render Buttons
 		},
 
 
-		// Append a button to the collection and ready for render by normalizing 
+		// Append a button to the collection and ready for render by normalizing
 		// string inputs.
 		addButtons: function(){
 			var button = arg(arguments, 0, null)
@@ -226,7 +226,7 @@ look a lot like a Google style popup.
 
 				if(to == 'string') {
 					// create buttons
-					
+
 					_button = popButton(button, func);
 
 					this._buttons.push(_button)
@@ -259,8 +259,8 @@ look a lot like a Google style popup.
 				// Here error Popup cannot activate :633
 				el.append(_button.render());
 			};
-			
-			if($(this[0]).data('visible')){	
+
+			if($(this[0]).data('visible')){
 				_button.active($(this[0]).find('.buttons').find('#' + button._id)[0])
 			};
 			return _button;
@@ -279,7 +279,7 @@ look a lot like a Google style popup.
 				var button = this._buttons[i];
 				// pass the element to the button.
 				button.parent = this
-				
+
 				button.active($(this[0]).find('.buttons').find('#' + button._id)[0])
 			};
 		},
@@ -293,7 +293,7 @@ look a lot like a Google style popup.
 		closeHandler: function(){
 			console.log("popup has closed");
 			// remove buttons
-		
+
 			// remove handlers
 			$(this[0]).unbind()
 			// remove html
@@ -307,20 +307,20 @@ look a lot like a Google style popup.
 				delete button[0];
 				delete button._handlers;
 			};
-			
+
 		},
 
 		// apply and or return the HTML used as a template.
 		html: function(){
-			
+
 			opts.buttons = '';
 			for (var i = 0; i < this._buttons.length; i++) {
 				var button = this._buttons[i];
 				var render = button.render()
 				opts.buttons += render;
-				// give an id to use so this element can be 
+				// give an id to use so this element can be
 				// used later.
-				// 
+				//
 				console.log(button, render)
 			};
 
@@ -345,18 +345,18 @@ look a lot like a Google style popup.
 				this._title = _title
 			}else {
 				_title = this._title;
+
 				if(_title == undefined) {
 					_title = this[0].find(opts.titleObject).html()
 				}
 			}
 
 			return this[0].find(opts.titleObject).html(_title).html()
-			
+
 		},
 
 		// Set return the main information from the popup.
 		text: function(){
-			debugger;
 			var _text = arg(arguments, 0, null);
 			if(_text) {
 				this._text = _text;
@@ -377,9 +377,9 @@ look a lot like a Google style popup.
 
 	// The actual plugin
 	$.fn.gReveal = function(options) {
-		
-		var title = 'default title';
-		var text = 'default text';
+
+		var title = defaults.title;
+		var text = defaults.text;
 		var _buts = arg(arguments, 2, defaults.buttons);
 
 
@@ -408,14 +408,19 @@ look a lot like a Google style popup.
 			}
 		}else if(this.length == 1 && typeof(options) == 'string') {
 			options = [options]
+		}else if(this.length == 1 && typeof(options) == 'object') {
+			// jquery wrapped element with a title in the options.
+			perform = true;
+			title = options[0]
 		}
-		
+
+
 		var els = []
 		if(perform == true && this.length == 0) {
 			els = $(defaults.html)
 		}else {
 			for (var i = this.length - 1; i >= 0; i--) {
-				var el = this[i]; 
+				var el = this[i];
 				els.push(el)
 			};
 		}
@@ -424,25 +429,25 @@ look a lot like a Google style popup.
 			revs = []
 			$(els).each(function(i, e) {
 
-				
+
 				var rev = new GReveal(this, opts);
 
 				// Do smart things with the arguments.
 				switch(options.length) {
 					case 0:
 						// no options given
-						
+
 						// get the title (if exists)
 						// from the wrapped object.
 						var _title = $(this).find(opts.titleObject).html() || title
-						
+
 						if(_title != title) {
-							
+
 							title = _title;
 						}
 
 						text = $(this)[0].outerHTML;
-						
+
 						break;
 
 					case 1:
@@ -452,6 +457,7 @@ look a lot like a Google style popup.
 						} else {
 							title = options[0]
 						}
+						text = $(this)[0].outerHTML;
 						break;
 
 					case 2:
@@ -460,13 +466,13 @@ look a lot like a Google style popup.
 						break;
 				}
 
-				
+
 				// perform the reveal
 				rev.init();
 
 				opts.title = title;
 				opts.text = text;
-				
+
 
 				if($('#' + opts.id).length > 0) {
 					// remove old html
@@ -475,8 +481,8 @@ look a lot like a Google style popup.
 				}
 
 				// Append this popup to the html
-				
-				
+
+
 				if(_buts.length <= 0) {
 					$('#' + opts.id + ' .' + opts.toolsClasses).hide()
 				} else {
@@ -485,7 +491,7 @@ look a lot like a Google style popup.
 						rev.addButton(button)
 					};
 				}
-				
+
 				var html = rev.renderedHtml();
 				$('body').append(html)
 				//$('#' + defaults.id).hide()
@@ -518,7 +524,7 @@ look a lot like a Google style popup.
 
 				rev[0].data('visible', true)
 				rev[0].data(opts.dataName, rev);
-				
+
 				//
 				$('#' + opts.id + ' .' + opts.textClasses + ' ' + opts.titleObject).hide();
 
@@ -541,7 +547,7 @@ look a lot like a Google style popup.
 // hotwire for an easy popup wrapper
 greveal = function(){
 	jQuery.fn.gReveal([
-						'greveal', 
+						'greveal',
 						arguments
 					])
 	var d = jQuery('#' + jQuery.fn.gReveal.prototype.getDefs().id)
@@ -551,7 +557,7 @@ greveal = function(){
 
 
 
-// --------------------------------------------- 
+// ---------------------------------------------
 
 
 PopupButton = function(){
@@ -568,7 +574,7 @@ PopupButton = function(){
 	    this._func = arg(a, 1, FUNCTION); //Do nothing
 
 		this._color = arg(a, 2, null) // Sorta grey
-		
+
 		// The parent object (probably GReveal)
 		this.parent = arg(a, 3, null)
 
@@ -586,7 +592,7 @@ PopupButton = function(){
 				'close': 	'#800000',
 				'okay': 	'#4F8335'  //	['okay', 'yes', 'ok', 'true'],
 			}
-			
+
 			for(var name in colorMap) {
 				if(this._text) {
 					if(name == this._text.toLowerCase()) {
@@ -594,18 +600,18 @@ PopupButton = function(){
 						this._color = colorMap[name]
 					}
 				}
-				
+
 				if(this._color == null) {
 					this._color = '#CCC'
 				}
 			}
-		
+
 		    this._id 		= arg(a, 3, "button_" + this.text());
 		    this._action 	= arg(a, 4, 'button')
 			this._position 	= arg(a, 5, 'left') //default left
 			this.handlers 	= {}
 			this.hooks 		= {}
-		   
+
 	   }
 	   return self
 	}
@@ -632,7 +638,7 @@ PopupButton = function(){
 				// activate the button click.
 				console.log('click handler')
 				_el.activateHandler('click')
-		
+
 				if(_el.func()) {
 					_el.func().apply(_el)
 				}
@@ -668,7 +674,7 @@ PopupButton = function(){
 			if(hook == name) {
 				for(var i=0; i < this.hooks[hook].length; i++) {
 					 var func = this.hooks[hook][i];
-				
+
 					 func.call(self, name)
 				}
 			}
@@ -689,7 +695,7 @@ PopupButton = function(){
 		this._text = arg(arguments, 0, this._text)
 
 		$(this[0]).val(this._text)
-	    
+
 	    if(arguments[0]) {
 	    	return this
 	    }
@@ -782,8 +788,8 @@ PopupButton = function(){
 		// return the html of the button templated with associated
 		// data.
 		var parent = arg(arguments, 0, null)
-		var html = arg(arguments, 1, 
-						sprintf(this.htmlTemplate(parent), this.renderObject()) 
+		var html = arg(arguments, 1,
+						sprintf(this.htmlTemplate(parent), this.renderObject())
 					)
        	return html;
 	}
@@ -794,7 +800,7 @@ PopupButton = function(){
 		// Append this button into the passed container
 		var a = arguments;
 		var parent = arg(a, 0, '')
-		
+
 		if(parent != '' && parent != null && parent != undefined) {
 			var render = self.render(parent)
 			$(parent).append(render)
@@ -825,7 +831,7 @@ PopupButton = function(){
 	this.colorText = function(){
 
 		var _color = arg(arguments, 0, this.color())
-		
+
 		var c = this.getContrastYIQ(_color)
 		if(c == 'dark') {
 			$(this[0]).addClass('dark').removeClass('light')
