@@ -200,12 +200,12 @@ look a lot like a Google style popup.
 			var _button = button;
 
 			if(button){
+
 				var to = typeof(button)
 				if(to == 'string') {
 					// create buttons
 					_button = popButton(button, function(){
 						console.log(button + ' has no function mapping.');
-						
 						this.close();
 					});
 
@@ -232,13 +232,15 @@ look a lot like a Google style popup.
 				}
 			}
 
+			_button.parent = this
 
 			if( $(this[0]).data('visible') ) {
 				// display button
 				var el = $(this[0]).find('.' + opts.toolsClasses)
 				el.append(_button.render());
 			};
-
+			
+			_button.activateHandlers
 			return _button;
 		},
 
@@ -253,8 +255,21 @@ look a lot like a Google style popup.
 		activateHandlers: function(){
 			for (var i = 0; i < this._buttons.length; i++) {
 				var button = this._buttons[i];
-				button.active()
+				// pass the element to the button.
+				button.parent = this
+				
+				button.active($(this[0]).find('.buttons').find('#' + button._id)[0])
 			};
+		},
+
+		// function to apply when the popup has finished its open
+		// animation
+		openHandler: function(){
+			console.log("popup has opened");
+		},
+
+		closeHandler: function(){
+			console.log("popup has closed");
 		},
 
 		// apply and or return the HTML used as a template.
@@ -437,16 +452,43 @@ look a lot like a Google style popup.
 				$('body').append(html)
 				//$('#' + defaults.id).hide()
 				rev[0] = $('#' + opts.id)
-				rev[0].reveal()
+
+				$(rev[0]).bind('reveal:lock', function(e){
+					//rev.openHandler(e)
+				})
+
+				// open  action shim.
+				$(rev[0]).bind('reveal:unlock', function(e){
+					// activate the open handler
+					rev.openHandler(e)
+					// Remove this redundant handler to clear memory
+					$(rev[0]).unbind('reveal:unlock');
+					// activate the handlers
+					rev.activateHandlers()
+				})
+
+				rev[0].reveal({
+					animation: 'fadeAndPop', // fade, fadeAndPop, none
+					animationSpeed: 300,
+					closeonbackgroundclick: true
+				});
+
+				// Close action. Re-apply the unlock feature.
+				$(rev[0]).bind('reveal:unlock', function(e){
+
+					rev.closeHandler(e);
+
+				})
+
 				rev[0].data('visible', true)
 				rev[0].data(opts.dataName, rev);
-				rev.activateHandlers()
+				
+				//
 				$('#' + opts.id + ' .' + opts.textClasses + ' ' + opts.titleObject).hide();
 
 				revs.push(rev)
 			});
 
-		
 		return revs
 		}
 	};
@@ -473,12 +515,6 @@ greveal = function(){
 
 
 
-
-
-
-
-
-
 // --------------------------------------------- 
 
 
@@ -495,7 +531,16 @@ PopupButton = function(){
 	    this._id = 'button_' + this._text;
 	    this._func = arg(a, 1, FUNCTION); //Do nothing
 		this._color = arg(a, 2, null) // Sorta grey
+		
+		// The parent object (probably GReveal)
 		this.parent = arg(a, 3, null)
+
+		// hooks for clicks and what not onHandlers.
+		this.hooks  = {
+						'click': [function(e){
+							self._func(e, 'click')
+						}]
+					}
 
 		if(this._color == null) {
 			// Some color sensative words?
@@ -543,13 +588,27 @@ PopupButton = function(){
 		return (yiq >= 128) ? 'dark' : 'light';
 	}
 
-	this.active = function(func){
+	this.active = function(){
 		/* When the popup is called at requested for the view */
-		this.registerHandler('active', func)
+		if(this.parent) {
+			var container = this.parent.opts.toolsClasses || this.parent.defaults.toolsClasses
+			var _but = $(this.parent[0]).find('.' + container).find('#' + this._id)[0]
+		}
+		var elem = arg(arguments, 0, _but);
+
+		if(elem && this[0] == undefined) {
+			this[0] = elem;
+		}
 
 		if(this[0]){
+			var _el = this
 			// handler can active
 			console.log("Activate!!!")
+			$(elem).click(function(e){
+				$(_el[0]).trigger('reveal:' + this._id)
+				// activate the button click.
+				_el.activateHandler('click')
+			})
 		}else {
 			console.error("PopupButton(" + this.text() + ").active() cannot be called until the html has been rendered by the parent")
 		}
@@ -573,18 +632,19 @@ PopupButton = function(){
 
 		var name = arg(a, 0, '*');
 
-		console.log("activating handler", name)
-
 		for(var hook in this.hooks) {
+
 			if(hook == name) {
-				for(var i=0; i<this.hooks[hook].length; i++) {
-					 var func = this.hooks[hook][i].apply(self, name)
+				for(var i=0; i < this.hooks[hook].length; i++) {
+					 var func = this.hooks[hook][i];
+				
+					 func.call(self, name)
 				}
 			}
 		}
 
 		if(this.hooks['*']) {
-    		for(var i=0; i<this.hooks['*'].length; i++){
+    		for(var i=0; i< this.hooks['*'].length; i++){
     			var func = this.hooks[hook][i].apply(self, name)
     		}
 		}
