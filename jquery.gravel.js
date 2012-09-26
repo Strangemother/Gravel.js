@@ -36,10 +36,8 @@ function arg(_a, ia, def, returnArray) {
 	}
 
 }
-
-
 /*
-gReveal is a google style popup designed to
+Gravel is a google style popup designed to
 look a lot like a Google style popup.
  */
 
@@ -53,7 +51,7 @@ look a lot like a Google style popup.
 		/*
 		The name used for the data object.
 		 */
-		dataName: 'gReveal',
+		dataName: 'gravel',
 		/*
 		The default title for the popup. This can be overridden
 
@@ -76,7 +74,7 @@ look a lot like a Google style popup.
 		default classes for to the HTML object. You should use these
 		for asset use.
 		 */
-		classes: 'reveal-modal greveal-popup',
+		classes: 'reveal-modal gravel-popup',
 
 		/*
 		Class applied to the title when created.
@@ -94,7 +92,7 @@ look a lot like a Google style popup.
 
 		toolsClasses: 'buttons',
 
-		/* The selector for jQuery wrapped objects; gReveal will
+		/* The selector for jQuery wrapped objects; gravel will
 		pull this entity to use as a title (and remove the original)
 		 */
 		titleObject: 'h2.title',
@@ -135,7 +133,7 @@ look a lot like a Google style popup.
 	}
 
 	//no desc
-	function GReveal(el, options) {
+	function Gravel(el, options) {
 		this.defaults = defaults
 		//Extending options:
 		opts = this.opts = $.extend({}, this.defaults, options);
@@ -145,7 +143,7 @@ look a lot like a Google style popup.
 	}
 
 	// Separate functionality from object creation
-	GReveal.prototype = {
+	Gravel.prototype = {
 
 		init: function() {
 			var _this = this;
@@ -242,7 +240,7 @@ look a lot like a Google style popup.
 						var text = button.text || button.value || button.name || button.id || null
 						var color = color || button.color || button.background || button.type || button.action || null
 						var action = button.action || button.value || button.name || button.type || null
-						var id = button.id || 'greveal_' + button.name || 'greveal_' + button.value || 'noid';
+						var id = button.id || 'gravel_' + button.name || 'gravel_' + button.value || 'noid';
 						_button = popButton(text, func, color, id, action)
 						this._buttons.push(_button)
 						return _button
@@ -376,7 +374,7 @@ look a lot like a Google style popup.
 	};
 
 	// The actual plugin
-	$.fn.gReveal = function(options) {
+	$.fn.gravel = function(options) {
 
 		var title = defaults.title;
 		var text = defaults.text;
@@ -398,7 +396,7 @@ look a lot like a Google style popup.
 		}
 
 		if(options.length == 2 && this.length == 0) {
-			if(options[0] == 'greveal') {
+			if(options[0] == 'gravel') {
 				//use custom HTML
 				//console.log("Custom button")
 				perform = true
@@ -430,7 +428,7 @@ look a lot like a Google style popup.
 			$(els).each(function(i, e) {
 
 
-				var rev = new GReveal(this, opts);
+				var rev = new Gravel(this, opts);
 
 				// Do smart things with the arguments.
 				switch(options.length) {
@@ -535,29 +533,22 @@ look a lot like a Google style popup.
 		}
 	};
 
-	$.fn.gReveal.prototype.defaults = defaults;
-	$.fn.gReveal.prototype.getDefs = getDefs;
+	$.fn.gravel.prototype.defaults = defaults;
+	$.fn.gravel.prototype.getDefs = getDefs;
 })(jQuery);
 
-
-
-
-
-
 // hotwire for an easy popup wrapper
-greveal = function(){
-	jQuery.fn.gReveal([
-						'greveal',
+gravel = function(){
+	jQuery.fn.gravel([
+						'gravel',
 						arguments
 					])
-	var d = jQuery('#' + jQuery.fn.gReveal.prototype.getDefs().id)
-			.data(jQuery.fn.gReveal.prototype.getDefs().dataName)
+	var d = jQuery('#' + jQuery.fn.gravel.prototype.getDefs().id)
+			.data(jQuery.fn.gravel.prototype.getDefs().dataName)
 	return d;
 }
 
-
-
-// ---------------------------------------------
+// --------------------------------------------
 
 
 PopupButton = function(){
@@ -575,7 +566,7 @@ PopupButton = function(){
 
 		this._color = arg(a, 2, null) // Sorta grey
 
-		// The parent object (probably GReveal)
+		// The parent object (probably gravel)
 		this.parent = arg(a, 3, null)
 
 		// hooks for clicks and what not onHandlers.
@@ -815,37 +806,29 @@ PopupButton = function(){
 		var a = arguments;
 		var color = arg(a, 0, this.color());
 		var hexcolor = this.convertColor(color, 'rgb')
-
 		var r = hexcolor[0];
 		var g = hexcolor[1];
 		var b = hexcolor[2];
-
-
 		var yiq = ((r*299)+(g*587)+(b*114))/1000;
-
 		return (yiq >= 128) ? 'dark' : 'light';
 	}
 
 
 	// Correct color button text.
 	this.colorText = function(){
-
 		var _color = arg(arguments, 0, this.color())
-
 		var c = this.getContrastYIQ(_color)
 		if(c == 'dark') {
 			$(this[0]).addClass('dark').removeClass('light')
 		}else{
 			$(this[0]).addClass('light').removeClass('dark')
 		}
-
 		return this;
 	}
 
 	this.lightContrast = function(){
 		var color = arg(a, 0, DEFAULT_COLOR);
 		var contrast = this.getContrastYIQ(this.convertColor(color))
-
 		if(contrast == 'light') {
 			return true;
 		}
@@ -934,14 +917,14 @@ popButton = function() {
 
 /*
 	Examples.
-	$(['message']).greveal()
-	$(['title', 'message']).greveal()
-	$(['title', 'message', buttonsArray ]).greveal()
-	$(['title', 'message', button, button, button ]).greveal()
-	$('.popupTemplate').greveal()
-	$('.popupTemplate').greveal('title')
-	$('.popupTemplate').greveal(['title'])
-	$('.popupTemplate').greveal(['message', 'title'])
-	$('.popupTemplate').greveal(['message', 'title', buttonsArray])
-	# $('.popupTemplate').greveal(['message', 'title', button, button, button])
+	$(['message']).gravel()
+	$(['title', 'message']).gravel()
+	$(['title', 'message', buttonsArray ]).gravel()
+	$(['title', 'message', button, button, button ]).gravel()
+	$('.popupTemplate').gravel()
+	$('.popupTemplate').gravel('title')
+	$('.popupTemplate').gravel(['title'])
+	$('.popupTemplate').gravel(['message', 'title'])
+	$('.popupTemplate').gravel(['message', 'title', buttonsArray])
+	# $('.popupTemplate').gravel(['message', 'title', button, button, button])
  */

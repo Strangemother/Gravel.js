@@ -60,25 +60,25 @@
 		color: #FFF;
 	}
 
-	.greveal-popup h2.title {
+	.gravel-popup h2.title {
 		margin-top: 0;
 		color: #333;
 		font-size: 20px;
 		margin-bottom: 20px;
 	}
 
-	.greveal-popup .information strong { 
+	.gravel-popup .information strong {
 		color: #333;
 	}
-	
-	.greveal-popup .information {
+
+	.gravel-popup .information {
 		color: #666;
 		text-align: left;
 		margin-bottom: 10px;
 		line-height: 1.8em;
 	}
 
-	.greveal-popup .buttons {
+	.gravel-popup .buttons {
 		padding-top: 20px;
 		border-top: solid 1px #DDD;
 		margin-top: 20px;
@@ -103,7 +103,7 @@
 	.mini-button.light {
 		color: #eee;
 		text-shadow: 0 -1px 0px rgba(10, 10, 10,.7);
-	}	
+	}
 
 	.mini-button.dark {
 		color: #444;
@@ -153,14 +153,5 @@
 	NOTES
 
 	Close button entity is &#215;
-
-	Example markup
-
-	<div id="myModal" class="reveal-modal">
-		<h2>Awesome. I have it.</h2>
-		<p class="lead">Your couch.  I it's mine.</p>
-		<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In ultrices aliquet placerat. Duis pulvinar orci et nisi euismod vitae tempus lorem consectetur. Duis at magna quis turpis mattis venenatis eget id diam. </p>
-		<a class="close-reveal-modal">&#215;</a>
-	</div>
 
 	*/

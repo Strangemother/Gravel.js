@@ -78,5 +78,6 @@ JS:
 	// or
 	// $('#simple').gReveal('My title')
 
+
 You'll notice the h2.title is stripped and used as a title. You can still pass a custom title;
 # Readme!
