@@ -173,8 +173,22 @@ look a lot like a Google style popup.
 		},
 
 		// Get and set the buttons for this popup.
+		// pass a name or id to receive a single button
 		buttons: function(){
-			return this._buttons = arg(arguments, 0, this._buttons)
+			which = arg(arguments, 0, null)
+
+			if(which) {
+				for (var i = 0; i < this._buttons.length; i++) {
+					var _but = this._buttons[i];
+					if(_but.id() == which || _but.text() == which || _but.value == which || _but == which) {
+						return _but
+					}
+				};
+
+				return null;
+			} 
+
+			return this._buttons
 			// render Buttons
 		},
 
@@ -197,17 +211,23 @@ look a lot like a Google style popup.
 		//returns a PopupButton
 		addButton: function(){
 			var button = arg(arguments, 0, null)
+			var action = arg(arguments, 1, null)
+			var color = arg(arguments, 2, null)
 			var _button = button;
 
 			if(button){
 
 				var to = typeof(button)
+
+				var func = action || button.func || button.click || button.press || button.onClick || button.onTouch || button.action || function(){
+							console.log(button + ' has no function mapping.');
+							this.close();
+						}
+
 				if(to == 'string') {
 					// create buttons
-					_button = popButton(button, function(){
-						console.log(button + ' has no function mapping.');
-						this.close();
-					});
+					
+					_button = popButton(button, func);
 
 					this._buttons.push(_button)
 
@@ -220,10 +240,9 @@ look a lot like a Google style popup.
 					} else {
 						// Just some sort of object. Map it anyway
 						var text = button.text || button.value || button.name || button.id || null
-						var func = button.func || button.click || button.press || button.onClick || button.onTouch || button.action || null
-						var color = button.color || button.background || button.type || button.action || null
+						var color = color || button.color || button.background || button.type || button.action || null
 						var action = button.action || button.value || button.name || button.type || null
-						var id = buttons.id || 'greveal_' + button.name || 'greveal_' + button.value || 'noid';
+						var id = button.id || 'greveal_' + button.name || 'greveal_' + button.value || 'noid';
 						_button = popButton(text, func, color, id, action)
 						this._buttons.push(_button)
 						return _button
@@ -237,10 +256,13 @@ look a lot like a Google style popup.
 			if( $(this[0]).data('visible') ) {
 				// display button
 				var el = $(this[0]).find('.' + opts.toolsClasses)
+				// Here error Popup cannot activate :633
 				el.append(_button.render());
 			};
 			
-			_button.activateHandlers
+			if($(this[0]).data('visible')){	
+				_button.active($(this[0]).find('.buttons').find('#' + button._id)[0])
+			};
 			return _button;
 		},
 
@@ -270,6 +292,22 @@ look a lot like a Google style popup.
 
 		closeHandler: function(){
 			console.log("popup has closed");
+			// remove buttons
+		
+			// remove handlers
+			$(this[0]).unbind()
+			// remove html
+			$(this[0]).remove()
+			delete this[0]
+			delete this.element;
+
+			for (var i = 0; i < this.buttons.length; i++) {
+				var button = this.buttons[i];
+				button[0].unbind()
+				delete button[0];
+				delete button._handlers;
+			};
+			
 		},
 
 		// apply and or return the HTML used as a template.
@@ -475,9 +513,7 @@ look a lot like a Google style popup.
 
 				// Close action. Re-apply the unlock feature.
 				$(rev[0]).bind('reveal:unlock', function(e){
-
 					rev.closeHandler(e);
-
 				})
 
 				rev[0].data('visible', true)
@@ -530,6 +566,7 @@ PopupButton = function(){
 		this._text = arg(a, 0, 'Press');
 	    this._id = 'button_' + this._text;
 	    this._func = arg(a, 1, FUNCTION); //Do nothing
+
 		this._color = arg(a, 2, null) // Sorta grey
 		
 		// The parent object (probably GReveal)
@@ -547,7 +584,7 @@ PopupButton = function(){
 			var colorMap = {
 				'cancel': 	'#800000', //	['no', 'cancel', 'false'],
 				'close': 	'#800000',
-				'okay': 	'blue'  //	['okay', 'yes', 'ok', 'true'],
+				'okay': 	'#4F8335'  //	['okay', 'yes', 'ok', 'true'],
 			}
 			
 			for(var name in colorMap) {
@@ -568,24 +605,9 @@ PopupButton = function(){
 			this._position 	= arg(a, 5, 'left') //default left
 			this.handlers 	= {}
 			this.hooks 		= {}
-			debugger;
-		   	return this;
+		   
 	   }
-	}
-
-	this.getContrastYIQ = function(){
-		var a = arguments;
-		var color = arg(a, 0, this.color());
-		var hexcolor = this.convertColor(color, 'rgb')
-
-		var r = hexcolor[0];
-		var g = hexcolor[1];
-		var b = hexcolor[2];
-
-
-		var yiq = ((r*299)+(g*587)+(b*114))/1000;
-
-		return (yiq >= 128) ? 'dark' : 'light';
+	   return self
 	}
 
 	this.active = function(){
@@ -603,15 +625,24 @@ PopupButton = function(){
 		if(this[0]){
 			var _el = this
 			// handler can active
-			console.log("Activate!!!")
+			console.log("Activate!!!", elem)
+
 			$(elem).click(function(e){
 				$(_el[0]).trigger('reveal:' + this._id)
 				// activate the button click.
+				console.log('click handler')
 				_el.activateHandler('click')
+		
+				if(_el.func()) {
+					_el.func().apply(_el)
+				}
 			})
+
 		}else {
 			console.error("PopupButton(" + this.text() + ").active() cannot be called until the html has been rendered by the parent")
 		}
+
+		this.colorText()
 	}
 
 	this.registerHandler = function() {
@@ -650,75 +681,46 @@ PopupButton = function(){
 		}
 	}
 
-	this.lightContrast = function(){
-		var color = arg(a, 0, DEFAULT_COLOR);
-		var contrast = this.getContrastYIQ(this.convertColor(color))
-
-		if(contrast == 'light') {
-			return true;
-		}
-		return false;
+	this.id = function(){
+	   return this._id  = arg(arguments, 0, this._id)
 	}
 
-	this.darkContrast = function(){
-		return !self.lightContrast.apply(self, arguments)
+	this.text = function(){
+		this._text = arg(arguments, 0, this._text)
+
+		$(this[0]).val(this._text)
+	    
+	    if(arguments[0]) {
+	    	return this
+	    }
+
+	    return this._text
+
 	}
 
 	this.action = function(){
 	    // Map an action to this button.
 	    // Currently a button as standard or:
 	    // pass action('cancel') for an automated close button
-	    return this._action = arg(arguments, 0, this._action)
-	}
+	    this._action = arg(arguments, 0, this._action)
 
-	this.convertColor = function() {
-		var a = arguments;
-		// Convert a color to another representation of the same color
+	    if(arguments[0]) {
+	    	return this
+	    }
 
-		// Which color to use. By default it's the button color
-		var color = arg(a, 0, this.color())
-
-		// What type to return.
-		// RGB,
-		var returnType = arg(a, 1, 'rgb')
-
-		if(color[0] == '#') {
-			var rt = String(returnType).toLowerCase()
-			if(rt == 'rgb') {
-				return this.hexToRGB(color)
-			}
-		}
-	}
-
-	this.hexToRGB = function(hex){
-		// pass a hex value a receive an array of 3 values [R, G, B]
-		if (hex[0]=="#") hex=hex.substr(1);
-		if (hex.length==3) {
-			var temp=hex; hex='';
-			temp = /^([a-f0-9])([a-f0-9])([a-f0-9])$/i.exec(temp).slice(1);
-		    for (var i=0;i<3;i++) hex+=temp[i]+temp[i];
-		 }
-		 var triplets = /^([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/i.exec(hex).slice(1);
-		 return [ parseInt(triplets[0],16),
-			 	parseInt(triplets[1],16),
-			 	parseInt(triplets[2],16)
-		 	]
-	}
-
-	this.id = function(){
-	   return this._id  = arg(arguments, 0, this._id)
-	}
-
-	this.text = function(){
-	    return this._text = arg(arguments, 0, this._text)
-	}
-
-	this.color= function(){
-		return this._color = arg(arguments, 0, this._color)
+	    return this._action
 	}
 
 	this.func = function(){
-	    return this._func = arg(arguments, 0, this._func)
+	    this._func = arg(arguments, 0, this._func)
+
+	    if(arguments[0]) {
+	    	return this
+	    }
+
+
+
+	    return this._func
 	}
 
 	this.closePopup = function() {
@@ -802,6 +804,103 @@ PopupButton = function(){
 
 	}
 
+
+	this.getContrastYIQ = function(){
+		var a = arguments;
+		var color = arg(a, 0, this.color());
+		var hexcolor = this.convertColor(color, 'rgb')
+
+		var r = hexcolor[0];
+		var g = hexcolor[1];
+		var b = hexcolor[2];
+
+
+		var yiq = ((r*299)+(g*587)+(b*114))/1000;
+
+		return (yiq >= 128) ? 'dark' : 'light';
+	}
+
+
+	// Correct color button text.
+	this.colorText = function(){
+
+		var _color = arg(arguments, 0, this.color())
+		
+		var c = this.getContrastYIQ(_color)
+		if(c == 'dark') {
+			$(this[0]).addClass('dark').removeClass('light')
+		}else{
+			$(this[0]).addClass('light').removeClass('dark')
+		}
+
+		return this;
+	}
+
+	this.lightContrast = function(){
+		var color = arg(a, 0, DEFAULT_COLOR);
+		var contrast = this.getContrastYIQ(this.convertColor(color))
+
+		if(contrast == 'light') {
+			return true;
+		}
+		return false;
+	}
+
+	this.darkContrast = function(){
+		return !self.lightContrast.apply(self, arguments)
+	}
+
+	this.convertColor = function() {
+		var a = arguments;
+		// Convert a color to another representation of the same color
+
+		// Which color to use. By default it's the button color
+		var color = arg(a, 0, this.color())
+
+		// What type to return.
+		// RGB,
+		var returnType = arg(a, 1, 'rgb')
+
+		if(color[0] == '#') {
+			var rt = String(returnType).toLowerCase()
+			if(rt == 'rgb') {
+				return this.hexToRGB(color)
+			}
+		}
+	}
+
+	this.hexToRGB = function(hex){
+		// pass a hex value a receive an array of 3 values [R, G, B]
+		if (hex[0]=="#") hex=hex.substr(1);
+		if (hex.length==3) {
+			var temp=hex; hex='';
+			temp = /^([a-f0-9])([a-f0-9])([a-f0-9])$/i.exec(temp).slice(1);
+		    for (var i=0;i<3;i++) hex+=temp[i]+temp[i];
+		 }
+		 var triplets = /^([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/i.exec(hex).slice(1);
+		 return [ parseInt(triplets[0],16),
+			 	parseInt(triplets[1],16),
+			 	parseInt(triplets[2],16)
+		 	]
+	}
+
+
+	this.color = function(){
+		var _color = arg(arguments, 0, this._color);
+		this._color = _color;
+
+		if(arguments[0]) {
+			$(this[0]).css('background-color', _color)
+			this.colorText(_color)
+		}
+
+		if(arguments[0]) {
+			return this
+		}
+
+		return this._color;
+	}
+
     return this.init.apply(this, arguments)
 }
 
@@ -816,7 +915,7 @@ popButton = function() {
 	// Method to call
 	var func = arg(a, 1, function(){});
 	// Button color
-	var color = arg(a, 2, '#CCC');
+	var color = arg(a, 2, null);
 	// 'button' as default - 'close' as a close popup button.
 	var action = arg(a, 3, 'button');
 	// Create id (allow class to do it)
