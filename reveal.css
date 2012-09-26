@@ -86,7 +86,7 @@
 
 	.mini-button {
 		background: url(/images/button-gradient.png) no-repeat 0 88%;
-
+		cursor: pointer;
 		border: none;
 		padding: 0 15px;
 		background-color: #333;
@@ -98,6 +98,22 @@
 		height: 30px;
 		text-shadow: 0 -1px 0px #888;
 		line-height: 30px;
+	}
+
+	.mini-button.light {
+		color: #eee;
+		text-shadow: 0 -1px 0px rgba(10, 10, 10,.7);
+	}	
+
+	.mini-button.dark {
+		color: #444;
+		text-shadow: 0 1px 0px rgba(255,255,255,.8);
+	}
+
+	.mini-button:hover {
+		box-shadow: 0 2px 1px #EEE;
+		position: relative;
+		top: -1;
 	}
 
 	.mini-button.blue {
