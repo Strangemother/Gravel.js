@@ -148,9 +148,13 @@
  Animations Locks
 ----------------------------*/
 			function unlockModal() { 
+				var completefunc = function(){};
+				modal.trigger('reveal:unlock')
+				
 				locked = false;
 			}
 			function lockModal() {
+				modal.trigger('reveal:lock')
 				locked = true;
 			}	
 			
