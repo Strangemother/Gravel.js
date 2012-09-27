@@ -88,3 +88,116 @@ You can use gravel outside the context of jquery. This eliminates the need to
 wrap an existing object and allows you to push custom popups.
 
 	gravel('My Title', 'I have something to say about this Sir!');
+
+###Gravel object.
+
+You can do perform more tricks to gravel by receiving the returned Gravel object.
+
+	var _gravels = $('#simpleTitle').gravel();
+	console.log(_gravels); // Array of Gravel
+
+If you're using the method call, you'll receive a single gravel
+
+	var _gravel = gravel('title', 'text');
+	console.log(_gravel); // A single Gravel
+
+####Gravel API
+
+You can use this as an example object:
+
+<div></div>
+
+	_gravel = gravel('hi there', 'some other info')
+
+
+- <strong>Gravel[0]</strong> - Receive the HTML element currently used on the page.
+
+<div></div>
+
+	>>> _gravel[0]
+	[<div class="reveal-modal gravel-popup" id="gStyle_popup" data-animation="fade" style="top: 100px; opacity: 1; visibility: visible; ">]
+
+
+- <strong>Gravel.element</strong> - Recieve the HTML template used for the HTML element created.
+
+<div></div>
+
+	>>> _gravel.element
+	// Returns text template in HTML format.
+
+
+- <strong>Gravel.renderedHtml()</strong> - Receive the rendered HTML, ready to add to the DOM
+
+<div></div>
+
+	>>> _gravel.renderedHtml();
+	'<div> ... truncated .. </div>' // a string of valid HTML
+
+
+- <strong>Gravel.title(<em>string</em>)</strong> - Get and Set the title of popup. Returns a string if the title value is not set. Returns a Gravel object if a new title string is passed. This is immediately rendered.
+
+<div></div>
+
+	>>> _gravel.title();
+	'title'
+
+<div></div>
+
+	>>> _gravel.title('flubber');
+	<Gravel> //Returns Gravel object
+
+
+- <strong>Gravel.text(<em>string</em>)</strong> - Get and Set the main body of information. Returns a string if the text value is not set. Returns a Gravel object if a new text string is passed. This is immediately rendered.
+
+<div></div>
+
+	>>> _gravel.text();
+	'... text'
+
+<div></div>
+
+	>>> _gravel.text('wibble');
+	<Gravel> //Returns Gravel object
+
+
+- <strong>Gravel.onOpen</strong> - Handler for when the popup is open
+
+<div></div>
+
+	>>> _gravel.onOpen = function(){
+		console.log("openHandler callback");
+	}
+
+
+- <strong>Gravel.onClose</strong> - Handler for when the popup is closed
+
+<div></div>
+
+	>>> _gravel.onClose = function(){
+		console.log("closeHandler callback");
+	}
+
+
+- <strong>Gravel.buttons()</strong> - Receive an array of PopupButton's used within the Gravel popup. You can collect a single button object by passing a reference to it.
+
+<div></div>
+
+	>>> _gravel.buttons();
+	[ PopupButton ] //returns array of buttons
+
+	>>> _gravel.buttons('okay')
+	PopupButton // returns the button or null
+
+- <strong>Gravel.addButton(<em>string | object | PopupButton</em>)</strong> - Add a button to the popup, allowing to custom interactions.
+
+the easiest method it to simply pass a string. The string becomes an active button. Without mapping any functionality to the button, it would simply close the popup.
+Some button words have some color mapping. Making it easier to create a cleaner UI.
+All buttons added to Gravel will become an object of PopupButton. This object wraps the functionality and color of the button - making it wasy to manipulate them.
+
+<div></div>
+	>>> _gravel.addButton('close')
+	[ PopupButton ]
+
+	>>> _gravel.addButton
+In this example you'll notice the close button is a different color and is instantly a close button.
+

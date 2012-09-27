@@ -12,13 +12,11 @@ function arg(_a, ia, def, returnArray) {
 		 */
 		for(var i=0; i<ia.length; i++) {
 			if(_a[ia[i]]){
-
 				 v = _a[ia[i]];
 				break;
 			}
 		}
-	}
-	else {
+	} else {
 		// if ia is just a value
 		if(_a[ia]) v = _a[ia];
 	}
@@ -30,8 +28,7 @@ function arg(_a, ia, def, returnArray) {
 	if(returnArray){
 		return [v, ia[i]]
 	}
-	else
-	{
+	else {
 		return v
 	}
 
@@ -206,11 +203,28 @@ look a lot like a Google style popup.
 			}
 		},
 
+		_getValue: function() {
+			debugger;
+			for (var i = 0; i < arguments.length; i++) {
+				var item = arguments[i];
+
+				if(item != undefined && (item != null) ) {
+					if(item instanceof Function){
+						var val = item();
+						if(typeof(val) == 'string'){
+							return val
+						};
+					}
+				}
+			};
+			return item
+		},
+
 		//returns a PopupButton
 		addButton: function(){
 			var button = arg(arguments, 0, null)
 			var action = arg(arguments, 1, null)
-			var color = arg(arguments, 2, null)
+			var _color = arg(arguments, 2, null)
 			var _button = button;
 
 			if(button){
@@ -224,28 +238,23 @@ look a lot like a Google style popup.
 
 				if(to == 'string') {
 					// create buttons
-
 					_button = popButton(button, func);
-
 					this._buttons.push(_button)
 
 				}else if(to == 'object') {
-
 					if(button == PopupButton) {
 						// add it
 						this._buttons.push(button);
 						_button = button
 					} else {
 						// Just some sort of object. Map it anyway
-						var text = button.text || button.value || button.name || button.id || null
-						var color = color || button.color || button.background || button.type || button.action || null
+						var text = this._getValue( button.text, button.value, button.name, button.id, null);
+						var color = _color || button.color || button.background || button.type || button.action || null
 						var action = button.action || button.value || button.name || button.type || null
 						var id = button.id || 'gravel_' + button.name || 'gravel_' + button.value || 'noid';
-						_button = popButton(text, func, color, id, action)
+						_button = popButton(text, func, _color, id, action)
 						this._buttons.push(_button)
-						return _button
 					}
-
 				}
 			}
 
@@ -285,11 +294,19 @@ look a lot like a Google style popup.
 		// function to apply when the popup has finished its open
 		// animation
 		openHandler: function(){
-			console.log("popup has opened");
+			this.onOpen()
 		},
 
-		closeHandler: function(){
-			console.log("popup has closed");
+		//public closeHandler:
+		onClose: function() {
+			console.log("popup has closed")
+		},
+
+		onOpen: function(){
+			console.log("Popup has opened")
+		},
+
+		_closeHandler: function(){
 			// remove buttons
 
 			// remove handlers
@@ -304,8 +321,10 @@ look a lot like a Google style popup.
 				button[0].unbind()
 				delete button[0];
 				delete button._handlers;
+
 			};
 
+			this.onClose()
 		},
 
 		// apply and or return the HTML used as a template.
@@ -517,7 +536,7 @@ look a lot like a Google style popup.
 
 				// Close action. Re-apply the unlock feature.
 				$(rev[0]).bind('reveal:unlock', function(e){
-					rev.closeHandler(e);
+					rev._closeHandler(e);
 				})
 
 				rev[0].data('visible', true)
@@ -563,7 +582,7 @@ PopupButton = function(){
 		this._text = arg(a, 0, 'Press');
 	    this._id = 'button_' + this._text;
 	    this._func = arg(a, 1, FUNCTION); //Do nothing
-
+	    debugger;
 		this._color = arg(a, 2, null) // Sorta grey
 
 		// The parent object (probably gravel)
@@ -762,15 +781,15 @@ PopupButton = function(){
 	}
 
 	this.renderObject = function() {
-		var color = this.color();
-		color = color
+		var _color = this.color();
+		// color = color
 		cssStyles = self.getContrastYIQ() + '_text'
 		pos = self.position() + '_pos'
 		return {'name': self.text(),
 			'cssStyles': cssStyles,
            'id': self.id(),
            'text': self.text(),
-           'color': color,
+           'color': _color,
            'position': "position_" + self.position()
            }
 	}
