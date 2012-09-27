@@ -119,7 +119,7 @@ look a lot like a Google style popup.
 		/*
 		Default buttons to apply.
 		 */
-		buttons: ['okay']
+		buttons: []
 	};
 
 	function getDefs() {
@@ -146,7 +146,8 @@ look a lot like a Google style popup.
 			var _this = this;
 			_this.opts = arg(arguments, 0, {})
 			// this.buttons = []
-			_this._buttons = []
+			console.log(arguments)
+			_this._buttons = this.opts.buttons || []
 			return _this
 		},
 
@@ -193,7 +194,7 @@ look a lot like a Google style popup.
 		addButtons: function(){
 			var button = arg(arguments, 0, null)
 
-			if( $(button).isArray() ) {
+			if( button instanceof Array ) {
 				for (var i = 0; i < button.length; i++) {
 					var _button = button[i];
 					this.addButton(_button)
@@ -204,7 +205,6 @@ look a lot like a Google style popup.
 		},
 
 		_getValue: function() {
-			debugger;
 			for (var i = 0; i < arguments.length; i++) {
 				var item = arguments[i];
 
@@ -212,8 +212,10 @@ look a lot like a Google style popup.
 					if(item instanceof Function){
 						var val = item();
 						if(typeof(val) == 'string'){
-							return val
+							return val;
 						};
+					}else if(typeof(item) == 'string') {
+						return item;
 					}
 				}
 			};
@@ -248,9 +250,10 @@ look a lot like a Google style popup.
 						_button = button
 					} else {
 						// Just some sort of object. Map it anyway
+
 						var text = this._getValue( button.text, button.value, button.name, button.id, null);
-						var color = _color || button.color || button.background || button.type || button.action || null
-						var action = button.action || button.value || button.name || button.type || null
+						_color = this._getValue(_color, button.color, button.background, button.type, null);
+						var action = button.func || button.action || button.value || button.name || button.type || func
 						var id = button.id || 'gravel_' + button.name || 'gravel_' + button.value || 'noid';
 						_button = popButton(text, func, _color, id, action)
 						this._buttons.push(_button)
@@ -270,14 +273,16 @@ look a lot like a Google style popup.
 			if($(this[0]).data('visible')){
 				_button.active($(this[0]).find('.buttons').find('#' + button._id)[0])
 			};
-			return _button;
+			// return _button;
+			return this
 		},
 
 		// Use the provided buttons and render the tools section.
 		// If this.buttons.length <= 0, tools bar will hide
 		renderButtons: function(){
 			this._buttons = arg(arguments, 0, this._buttons)
-			console.log('render buttons')
+
+			return this;
 		},
 
 
@@ -346,7 +351,7 @@ look a lot like a Google style popup.
 		},
 
 		id: function(){
-			debugger;
+			//debugger;
 			var _id = arg(arguments, 0, opts.id);
 			if(_id != opts.id) {
 				$('#' + opts.id).attr('id', _id)
@@ -485,7 +490,7 @@ look a lot like a Google style popup.
 
 
 				// perform the reveal
-				rev.init();
+				rev.init(options);
 
 				opts.title = title;
 				opts.text = text;
@@ -582,7 +587,7 @@ PopupButton = function(){
 		this._text = arg(a, 0, 'Press');
 	    this._id = 'button_' + this._text;
 	    this._func = arg(a, 1, FUNCTION); //Do nothing
-	    debugger;
+	    //debugger;
 		this._color = arg(a, 2, null) // Sorta grey
 
 		// The parent object (probably gravel)
