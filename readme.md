@@ -26,7 +26,7 @@ Do the usual HTML inclusions.
 	<link rel="stylesheet" type="text/css" href="reveal.css">
 	<script type="text/javascript" src='jquery.reveal.js'></script>
 	<script type="text/javascript" src='sprintf.js'></script>
-	<script type="text/javascript" src='jquery.gReveal.js'></script>
+	<script type="text/javascript" src='jquery.gravel.js'></script>
 
 ##Goal of the project
 
@@ -47,37 +47,44 @@ A lot this is handled by the wonderful plugin reveal.js thus we apply
 - a button framework for easy action mapping
 - Super simple API (jQuery plugin or directly accessible)
 
-## Using the plugin.
+###Using the plugin.
 
+
+####Getting Started - http://jsfiddle.net/Glycerine/bjpdm/
 To get started you can do the simplest:
 
-HTML:
 
 	<div id='simple'>This is some basic text information.</div>
+<div></div>
+	$('#simple').gravel()
 
-JS:
+####Using a Title - http://jsfiddle.net/Glycerine/bjpdm/1/
 
-	$('#simple').gReveal()
+You can add options to your simple popup such as a title.
 
-You can add options to your simple popup such as a title
+	$('#simple').gravel('My Title')
 
-	$('#simple').gReveal('My Title')
 
-If you have a h2.title element within your content, you can use that as the title
+####Auto titles - http://jsfiddle.net/Glycerine/bjpdm/2/
 
-HTML:
+If you have a h2.title element within your content gravel will use this and remove it from the main content block.
 
-	<div class="optionsPopup">
-		<h2 class="title">Options</h2>
-		This is some information Gravel will use to present a popup.
+	<div id="simpleTitle">
+	    <h2 class="title">Another Title</h2>
+	    This popup is on Gravel. Isn't it easy!
 	</div>
+<div></div>
+	$('#simpleTitle').gravel();
 
-JS:
+####Overriding Auto Titles - http://jsfiddle.net/Glycerine/bjpdm/3/
+You can override the auto title by giving another like before!:
 
-	$('#simple').gReveal()
-	// or
-	// $('#simple').gReveal('My title')
+	$('#simpleTitle').gravel('My title');
 
 
-You'll notice the h2.title is stripped and used as a title. You can still pass a custom title;
-# Readme!
+####Popup without $elector wrapping - http://jsfiddle.net/Glycerine/bjpdm/4/
+
+You can use gravel outside the context of jquery. This eliminates the need to
+wrap an existing object and allows you to push custom popups.
+
+	gravel('My Title', 'I have something to say about this Sir!');
