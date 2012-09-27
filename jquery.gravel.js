@@ -37,12 +37,7 @@ function arg(_a, ia, def, returnArray) {
 Gravel is a google style popup designed to
 look a lot like a Google style popup.
  */
-
-(function($){
-
-	var opts = null
-	//Defaults:
-	var defaults = {
+GRAVEL_DEFAULTS = {
 		onComplete: function(){ console.log('complete') },
 
 		/*
@@ -122,18 +117,29 @@ look a lot like a Google style popup.
 		buttons: []
 	};
 
-	function getDefs() {
-		if(opts) {
-			return opts
+(function($){
+
+	var opts = null
+	//Defaults:
+
+
+	function _getDefs() {
+		var parent = arg(arguments, 0, GRAVEL_DEFAULTS);
+		var el = arg(arguments, 1, null)
+		if(parent) return null;
+
+		if(parent.opts) {
+			return parent.opts[el] || parent.opts
 		}
-		return defaults
+
+		return parent[el] || parent
 	}
 
 	//no desc
 	function Gravel(el, options) {
-		this.defaults = defaults
+		this.defaults = GRAVEL_DEFAULTS
 		//Extending options:
-		opts = this.opts = $.extend({}, this.defaults, options);
+		this.opts = $.extend({}, this.defaults, options);
 
 		this.element = el;
 
@@ -144,14 +150,22 @@ look a lot like a Google style popup.
 
 		init: function() {
 			var _this = this;
-			_this.opts = arg(arguments, 0, {})
+			var o = _this.opts = arg(arguments, 0, {})
 			// this.buttons = []
-			console.log(arguments)
+			//console.log('Gravel init', arguments)
 			_this._buttons = this.opts.buttons || []
+
+			this._title = o.title || _this._title;
+			this.onClose = o.onClose || this.onClose;
+			this.onOpen = o.onOpen || this.onOpen;
+
 			return _this
 		},
 
-		getDefs: getDefs,
+		getDefs: function(){
+			var el = arg(arguments, 0, null)
+			return _getDefs(this, el)
+		},
 
 		//pass a message, an optional title and options buttons and reveal a popup
 		popup: function(title, text) {
@@ -229,6 +243,8 @@ look a lot like a Google style popup.
 			var _color = arg(arguments, 2, null)
 			var _button = button;
 
+			debugger;
+
 			if(button){
 
 				var to = typeof(button)
@@ -265,7 +281,7 @@ look a lot like a Google style popup.
 
 			if( $(this[0]).data('visible') ) {
 				// display button
-				var el = $(this[0]).find('.' + opts.toolsClasses)
+				var el = $(this[0]).find('.' + this.getDefs().toolsClasses)
 				// Here error Popup cannot activate :633
 				el.append(_button.render());
 			};
@@ -335,45 +351,56 @@ look a lot like a Google style popup.
 		// apply and or return the HTML used as a template.
 		html: function(){
 
-			opts.buttons = '';
+			this.getDefs().buttons = '';
 			for (var i = 0; i < this._buttons.length; i++) {
 				var button = this._buttons[i];
 				var render = button.render()
-				opts.buttons += render;
+				this.getDefs().buttons += render;
 				// give an id to use so this element can be
 				// used later.
 				//
 				console.log(button, render)
 			};
 
-			var _html = arg(arguments, 0, opts.html)
+			var _html = arg(arguments, 0, this.getDefs().html)
 			return _html;
 		},
 
 		id: function(){
 			//debugger;
-			var _id = arg(arguments, 0, opts.id);
-			if(_id != opts.id) {
-				$('#' + opts.id).attr('id', _id)
-				opts.id= _id;
+			var _id = arg(arguments, 0, this.getDefs().id);
+			if(_id != this.getDefs().id) {
+				$('#' + this.getDefs().id).attr('id', _id)
+				this.getDefs().id= _id;
 			}
-			return opts.id;
+			return this.getDefs().id;
 		},
 		// Get return the title. This will also actively set the
 		// current popup's title.
 		title: function(){
 			var _title = arg(arguments, 0, null);
+
 			if(_title) {
+				// save title if passed.
 				this._title = _title
+
+				// set the data
+				this[0].find(this.getDefs().titleObject).html(_title)
+
+				// return the parent object
+				return this
 			}else {
 				_title = this._title;
-
+				// title has never been set.
 				if(_title == undefined) {
-					_title = this[0].find(opts.titleObject).html()
+					_title = this[0].find(this.getDefs().titleObject).html()
+
 				}
 			}
 
-			return this[0].find(opts.titleObject).html(_title).html()
+			// apply and return the title
+			var seto = this[0].find(this.getDefs().titleObject).html(_title)
+			return seto.html()
 
 		},
 
@@ -385,32 +412,33 @@ look a lot like a Google style popup.
 			} else {
 				_text = this._text;
 				if(_text == undefined) {
-					_text = this[0].find(opts.textObject).html()
+					_text = this[0].find(this.getDefs().textObject).html()
 				}
 			}
 
-			return this[0].find(opts.textObject).html(_text).html()
+			return this[0].find(this.getDefs().textObject).html(_text).html()
 		},
 
 		renderedHtml: function(){
-			return sprintf(this.html(), opts);
+			return sprintf(this.html(), this.getDefs());
 		}
 	};
 
 	// The actual plugin
 	$.fn.gravel = function(options) {
 
-		var title = defaults.title;
-		var text = defaults.text;
+		// set default values.
+		var title, text;
+
+		var defaults = GRAVEL_DEFAULTS;
+
 		var _buts = arg(arguments, 2, defaults.buttons);
-
-
 		var html = arg(arguments, 3, defaults.html);
 
+		// Flag to determine if a jquery object exists.
+		var _wrapped = true
 		var perform = true;
-		if(this.length <= 0) {
-			perform = false;
-		}
+		if(this.length <= 0) {	perform = false; }
 
 		if(!options) {
 			// The popup has been applied using defaults.
@@ -419,26 +447,31 @@ look a lot like a Google style popup.
 			options = []
 		}
 
-		if(options.length == 2 && this.length == 0) {
+		if(this.length == 0) {
 			if(options[0] == 'gravel') {
+
 				//use custom HTML
 				//console.log("Custom button")
 				perform = true
+				_wrapped = false
 				// map the passed arguments to the options
 				options = options[1]
-
 			}
 		}else if(this.length == 1 && typeof(options) == 'string') {
+			// options need to be an array
 			options = [options]
-		}else if(this.length == 1 && typeof(options) == 'object') {
+		}else if(typeof(options) == 'object') {
 			// jquery wrapped element with a title in the options.
 			perform = true;
-			title = options[0]
+			// Passed title, plucked title, default title
+			title = options.title || $(this).find(options.titleObject).html() || defaults.title;
+			text = options.text || text;
 		}
 
 
 		var els = []
 		if(perform == true && this.length == 0) {
+			// give HTML if this is not jQuery wrapped.
 			els = $(defaults.html)
 		}else {
 			for (var i = this.length - 1; i >= 0; i--) {
@@ -452,61 +485,39 @@ look a lot like a Google style popup.
 			$(els).each(function(i, e) {
 
 
-				var rev = new Gravel(this, opts);
 
-				// Do smart things with the arguments.
-				switch(options.length) {
-					case 0:
-						// no options given
+				var rev = new Gravel(this, options);
 
-						// get the title (if exists)
-						// from the wrapped object.
-						var _title = $(this).find(opts.titleObject).html() || title
 
-						if(_title != title) {
+				// if wrapped - attempt a title from the entity
+				if(_wrapped) {
+					// if the title is still defaulted.
+					if(title == rev.getDefs().title) {
+						_title = $(this).find(rev.getDefs().titleObject).html() || title;
+						if(_title != title) { title = _title; };
+					}
 
-							title = _title;
-						}
-
-						text = $(this)[0].outerHTML;
-
-						break;
-
-					case 1:
-						if(typeof(options) == 'string') {
-							// just the title
-							title = options
-						} else {
-							title = options[0]
-						}
-						text = $(this)[0].outerHTML;
-						break;
-
-					case 2:
-						title = options[0]
-						text = options [1]
-						break;
+					text = $(this)[0].outerHTML;
 				}
-
 
 				// perform the reveal
 				rev.init(options);
 
-				opts.title = title;
-				opts.text = text;
+				rev.getDefs().title = title;
+				rev.getDefs().text = text;
 
 
-				if($('#' + opts.id).length > 0) {
+				if($('#' + rev.getDefs().id).length > 0) {
 					// remove old html
 					// add new HTML
-					$('#' + opts.id).remove()
+					$('#' + rev.getDefs().id).remove()
 				}
 
 				// Append this popup to the html
 
 
 				if(_buts.length <= 0) {
-					$('#' + opts.id + ' .' + opts.toolsClasses).hide()
+					$('#' + rev.getDefs().id + ' .' + rev.getDefs().toolsClasses).hide()
 				} else {
 					for (var i = 0; i < _buts.length; i++) {
 						var button = _buts[i]
@@ -517,7 +528,7 @@ look a lot like a Google style popup.
 				var html = rev.renderedHtml();
 				$('body').append(html)
 				//$('#' + defaults.id).hide()
-				rev[0] = $('#' + opts.id)
+				rev[0] = $('#' + rev.getDefs().id)
 
 				$(rev[0]).bind('reveal:lock', function(e){
 					//rev.openHandler(e)
@@ -545,10 +556,10 @@ look a lot like a Google style popup.
 				})
 
 				rev[0].data('visible', true)
-				rev[0].data(opts.dataName, rev);
+				rev[0].data(rev.getDefs().dataName, rev);
 
 				//
-				$('#' + opts.id + ' .' + opts.textClasses + ' ' + opts.titleObject).hide();
+				$('#' + rev.getDefs().id + ' .' + rev.getDefs().textClasses + ' ' + rev.getDefs().titleObject).hide();
 
 				revs.push(rev)
 			});
@@ -557,16 +568,20 @@ look a lot like a Google style popup.
 		}
 	};
 
-	$.fn.gravel.prototype.defaults = defaults;
-	$.fn.gravel.prototype.getDefs = getDefs;
+	$.fn.gravel.prototype.defaults = GRAVEL_DEFAULTS;
+	$.fn.gravel.prototype.getDefs = function(){
+		return _getDefs();
+	}
 })(jQuery);
 
 // hotwire for an easy popup wrapper
 gravel = function(){
+
 	jQuery.fn.gravel([
 						'gravel',
 						arguments
 					])
+
 	var d = jQuery('#' + jQuery.fn.gravel.prototype.getDefs().id)
 			.data(jQuery.fn.gravel.prototype.getDefs().dataName)
 	return d;
@@ -646,7 +661,7 @@ PopupButton = function(){
 		if(this[0]){
 			var _el = this
 			// handler can active
-			console.log("Activate!!!", elem)
+			// console.log("Activate!!!", elem)
 
 			$(elem).click(function(e){
 				$(_el[0]).trigger('reveal:' + this._id)
@@ -738,9 +753,6 @@ PopupButton = function(){
 	    if(arguments[0]) {
 	    	return this
 	    }
-
-
-
 	    return this._func
 	}
 
