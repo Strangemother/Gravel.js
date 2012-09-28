@@ -29,6 +29,9 @@ local.properties
 .buildpath
 
 
+old_src/*
+old_src
+
 #################
 ## Visual Studio
 #################
