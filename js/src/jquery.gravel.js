@@ -126,7 +126,7 @@ GRAVEL_DEFAULTS = {
 	function _getDefs() {
 		var parent = arg(arguments, 0, GRAVEL_DEFAULTS);
 		var el = arg(arguments, 1, null)
-		if(parent) return null;
+		if(!parent) return null;
 
 		if(parent.opts) {
 			return parent.opts[el] || parent.opts
@@ -140,7 +140,6 @@ GRAVEL_DEFAULTS = {
 		this.defaults = GRAVEL_DEFAULTS
 		//Extending options:
 		this.opts = $.extend({}, this.defaults, options);
-
 		this.element = el;
 
 	}
@@ -151,6 +150,7 @@ GRAVEL_DEFAULTS = {
 		init: function() {
 			var _this = this;
 			var o = _this.opts = arg(arguments, 0, {})
+
 			// this.buttons = []
 			//console.log('Gravel init', arguments)
 			_this._buttons = this.opts.buttons || []
@@ -424,7 +424,8 @@ GRAVEL_DEFAULTS = {
 		}
 	};
 
-	// The actual plugin
+
+	// --------------------------------------------------------------------------------------------------------------------------------------The actual plugin
 	$.fn.gravel = function(options) {
 
 		// set default values.
@@ -435,9 +436,12 @@ GRAVEL_DEFAULTS = {
 		var _buts = arg(arguments, 2, defaults.buttons);
 		var html = arg(arguments, 3, defaults.html);
 
+		debugger;
+
 		// Flag to determine if a jquery object exists.
 		var _wrapped = true
 		var perform = true;
+
 		if(this.length <= 0) {	perform = false; }
 
 		if(!options) {
@@ -569,23 +573,26 @@ GRAVEL_DEFAULTS = {
 	};
 
 	$.fn.gravel.prototype.defaults = GRAVEL_DEFAULTS;
+
 	$.fn.gravel.prototype.getDefs = function(){
 		return _getDefs();
 	}
+
+	// hotwire for an easy popup wrapper
+	gravel = function(){
+
+		jQuery.fn.gravel([
+							'gravel',
+							arguments
+						])
+
+		var d = jQuery('#' + jQuery.fn.gravel.prototype.getDefs().id)
+				.data(jQuery.fn.gravel.prototype.getDefs().dataName)
+		return d;
+	}
+
 })(jQuery);
 
-// hotwire for an easy popup wrapper
-gravel = function(){
-
-	jQuery.fn.gravel([
-						'gravel',
-						arguments
-					])
-
-	var d = jQuery('#' + jQuery.fn.gravel.prototype.getDefs().id)
-			.data(jQuery.fn.gravel.prototype.getDefs().dataName)
-	return d;
-}
 
 // --------------------------------------------
 
