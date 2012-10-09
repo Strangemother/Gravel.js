@@ -148,8 +148,8 @@ look a lot like a Google style popup.
 			// this.buttons = []
 			console.log(arguments)
 			_this._buttons = this.opts.buttons || []
-			_this._width = '500';
-			_this._height = '365';
+			_this._width = null;
+			_this._height = 0;
 			return _this
 		},
 
@@ -383,11 +383,25 @@ look a lot like a Google style popup.
 			var a = arguments;
 			// First arg is passed as width or real width of object as default
 			// width is them applied and returned
-			var width = parseInt( this.width(arg(a, 0, this[0].css('width'))) )
-			var height = parseInt( this.height(arg(a, 1, this[0].css('height'))) );
+			var width = arg(a, 0, parseInt( this.width()) )
+			var height = parseInt( this.height( this[0].css('height')) );
+			console.log(height)
+			var marginTop = parseInt( this.height( this[0].css('margin-top') ) );
 			var padding = parseInt( this[0].css('padding-left') )
 			var mLeft = width * -.5;
-			var mTop = height * -.5; 
+			var mTop = marginTop * -.5; 
+			var animate = arg(a, 1, true);
+ 			if(animate) {	
+				this[0].css('height', height);
+
+				this[0].animate( {
+					width: width,
+					//height: height,
+					marginLeft: mLeft-padding,
+					marginTop: mTop
+				}, 'slow')
+				return true;
+			}
 			this[0].css('width', width);
 			this[0].css('height', height);
 			this[0].css('margin-left', mLeft - padding);
@@ -398,12 +412,16 @@ look a lot like a Google style popup.
 
 		height: function(){
 			this._height = arg(arguments, 0, this._height);
+			this[0].css('height', this._height);
 			return this._height;
 		},
 
 		width: function() {
 			this._width = arg(arguments, 0, this._width)
-
+			this[0].css('width', this._width);
+			if(this._width == null) {
+				return  this[0].css('width');
+			}
 			return this._width;
 		},
 
@@ -581,6 +599,7 @@ look a lot like a Google style popup.
 				$('#' + opts.id + ' .' + opts.textClasses + ' ' + opts.titleObject).hide();
 
 				revs.push(rev)
+
 			});
 
 		return revs
