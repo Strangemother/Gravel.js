@@ -148,6 +148,8 @@ look a lot like a Google style popup.
 			// this.buttons = []
 			console.log(arguments)
 			_this._buttons = this.opts.buttons || []
+			_this._width = '500';
+			_this._height = '365';
 			return _this
 		},
 
@@ -375,6 +377,34 @@ look a lot like a Google style popup.
 
 			return this[0].find(opts.titleObject).html(_title).html()
 
+		},
+
+		center: function(){
+			var a = arguments;
+			// First arg is passed as width or real width of object as default
+			// width is them applied and returned
+			var width = parseInt( this.width(arg(a, 0, this[0].css('width'))) )
+			var height = parseInt( this.height(arg(a, 1, this[0].css('height'))) );
+			var padding = parseInt( this[0].css('padding-left') )
+			var mLeft = width * -.5;
+			var mTop = height * -.5; 
+			this[0].css('width', width);
+			this[0].css('height', height);
+			this[0].css('margin-left', mLeft - padding);
+			this[0].css('margin-top', mTop);
+		},
+
+
+
+		height: function(){
+			this._height = arg(arguments, 0, this._height);
+			return this._height;
+		},
+
+		width: function() {
+			this._width = arg(arguments, 0, this._width)
+
+			return this._width;
 		},
 
 		// Set return the main information from the popup.
